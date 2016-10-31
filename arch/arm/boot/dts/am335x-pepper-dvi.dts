@@ -278,7 +278,7 @@
 &mmc1 {
 	/* Bootable SD card slot */
 	status = "okay";
-	/* vmmc-supply = <&ldo3_reg>;*/
+	vmmc-supply = <&v3v3c_reg>;
 	bus-width = <4>;
 	pinctrl-names = "default";
 	pinctrl-0 = <&sd_pins>;
