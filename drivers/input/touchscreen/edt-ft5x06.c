@@ -949,6 +949,12 @@ static int edt_ft5x06_ts_probe(struct i2c_client *client,
 	tsdata->input = input;
 	tsdata->factory_mode = false;
 
+	if(tsdata->reset_gpio == NULL)
+	{
+		dev_err(&client->dev, "Using reset version of screen");
+		tsdata->reset_gpio = tsdata->wake_gpio;
+	}
+
 	error = edt_ft5x06_ts_identify(client, tsdata, fw_version);
 	if (error) {
 		dev_err(&client->dev, "touchscreen probe failed\n");
