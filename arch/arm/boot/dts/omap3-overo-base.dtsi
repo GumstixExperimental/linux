@@ -67,6 +67,7 @@
 		regulator-max-microvolt = <3300000>;
 		gpio = <&gpio1 16 GPIO_ACTIVE_HIGH>;		/* gpio_16: WiFi nReset */
 		startup-delay-us = <10000>;
+		enable-active-high;
 	};
 
 	/* Regulator to trigger the nReset signal of the Bluetooth module */
@@ -128,6 +129,7 @@
 	w3cbw003c_pins: pinmux_w3cbw003c_pins {
 		pinctrl-single,pins = <
 			OMAP3_CORE1_IOPAD(0x20b4, PIN_OUTPUT | MUX_MODE4)		/* gpmc_ncs3.gpio_54 */
+			OMAP3_CORE1_IOPAD(0x20bc, PIN_INPUT | MUX_MODE4)		/* gpmc_ncs7.gpio_58 */
 			OMAP3_CORE1_IOPAD(0x219c, PIN_OUTPUT | MUX_MODE4)		/* uart3_rts_sd.gpio_164 */
 		>;
 	};
@@ -184,13 +186,14 @@
 &mmc2 {
 	pinctrl-names = "default";
 	pinctrl-0 = <&mmc2_pins>;
-	vmmc-supply = <&w3cbw003c_npoweron>;
+	vmmc_aux-supply = <&w3cbw003c_npoweron>;
 	vqmmc-supply = <&w3cbw003c_bt_nreset>;
-	vmmc_aux-supply = <&w3cbw003c_wifi_nreset>;
+	vmmc-supply = <&w3cbw003c_wifi_nreset>;
 	bus-width = <4>;
 	cap-sdio-irq;
 	interrupts-extended = <&intc 86>, <&gpio5 5 GPIO_ACTIVE_HIGH>; /* gpio_133 (mmc2.dat1) */
 	non-removable;
+	ti,dual-volt;
 };
 
 &twl_gpio {
