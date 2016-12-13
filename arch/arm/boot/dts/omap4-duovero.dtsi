@@ -279,6 +279,15 @@
 	keep-power-in-suspend;
 	ti,dual-volt;
 	max-frequency = <40000000>;
+	#address-cells = <1>;
+	#size-cells = <0>;
+
+	wlcore: wlcore@0 {
+		compatible = "ti,wl1831";
+		reg = <2>;
+		interrupt-parent = <&gpio2>;
+		interrupts = <17 IRQ_TYPE_LEVEL_HIGH>;
+	};
 };
 
 &uart2 {
