@@ -97,7 +97,7 @@
 		reg = <0x38>;
 		interrupt-parent = <&gpio1>;
 		interrupts = <10 0>;
-		wake-gpios = <&gpio1 31 GPIO_ACTIVE_HIGH>;
+		wake-gpios = <&gpio1 31 GPIO_ACTIVE_LOW>;
 		touchscreen-size-x = <480>;
 		touchscreen-size-y = <272>;
 	};
