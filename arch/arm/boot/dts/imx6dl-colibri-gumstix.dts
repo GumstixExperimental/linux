@@ -1,0 +1,754 @@
+
+/*
+
+ * Copyright 2016 Gumstix, Inc.
+
+ *
+
+ * Heavily based on imx6dl-colibri-eval-v3.dts.
+
+ *
+
+ * The code contained herein is licensed under the GNU General Public
+
+ * License. You may obtain a copy of the GNU General Public License
+
+ * Version 2 or later at the following locations:
+
+ *
+
+ * http://www.opensource.org/licenses/gpl-license.html
+
+ * http://www.gnu.org/copyleft/gpl.html
+
+ */
+
+
+
+/dts-v1/;
+
+
+
+#include <dt-bindings/input/input.h>
+
+#include <dt-bindings/interrupt-controller/irq.h>
+
+#include "imx6dl.dtsi"
+
+#include "imx6qdl-colibri.dtsi"
+
+
+
+/ {
+
+	model = "Toradex Colibri iMX6DL/S on Gumstix Evaluation Board";
+
+	compatible = "gumstix,colibri_imx6dl-eval", "toradex,colibri_imx6dl", "fsl,imx6dl";
+
+
+
+	aliases {
+
+		i2c0 = &i2cddc;
+
+		i2c1 = &i2c2;
+
+		i2c2 = &i2c3;
+
+		i2c3 = &i2c4;
+
+	};
+
+
+
+	aliases {
+
+		rtc0 = &rtc_i2c;
+
+		rtc1 = "/soc/aips-bus@02000000/snvs@020cc000/snvs-rtc-lp@34";
+
+	};
+
+
+
+	aliases {
+
+		/* the following, together with kernel patches, forces a fixed assignment
+
+		   between device id and usdhc controller */
+
+		/* i.e. the eMMC on usdhc3 will be /dev/mmcblk0 */
+
+		mmc0 = &usdhc3; /* eMMC */
+
+		mmc1 = &usdhc1; /* MMC 4bit slot */
+
+		mmc2 = &usdhc1; /* SDIO 4bit for Wilink */
+
+	};
+
+
+
+	extcon_usbc_det: usbc_det {
+
+		compatible = "linux,extcon-usb-gpio";
+
+		debounce = <25>;
+
+		id-gpio = <&gpio7 12 GPIO_ACTIVE_HIGH>;
+
+		pinctrl-names = "default";
+
+		pinctrl-0 = <&pinctrl_usbc_det_1>;
+
+	};
+
+
+
+	gpio-keys {
+
+		compatible = "gpio-keys";
+
+		pinctrl-names = "default";
+
+		pinctrl-0 = <&pinctrl_gpio_keys>;
+
+
+
+		wakeup {
+
+			label = "Wake-Up";
+
+			gpios = <&gpio2 4 GPIO_ACTIVE_LOW>;
+
+			linux,code = <KEY_WAKEUP>;
+
+			debounce-interval = <10>;
+
+			gpio-key,wakeup;
+
+		};
+
+	};
+
+
+
+	leds {
+
+		compatible = "gpio-leds";
+
+
+
+		pinctrl-names = "default";
+
+		pinctrl-0 = <&pinctrl_leds>;
+
+
+
+		led-blue {
+
+			label = "LED-BLUE";
+
+			gpios = <&gpio2 3 GPIO_ACTIVE_HIGH>;
+
+		};
+
+
+
+		led-red {
+
+			label = "LED-RED";
+
+			gpios = <&gpio2 2 GPIO_ACTIVE_HIGH>;
+
+		};
+
+	};
+
+
+
+	regulators {
+
+		reg_usb_host_vbus: usb_host_vbus {
+
+			status = "okay";
+
+			enable-active-high;
+
+		};
+
+
+
+		reg_wlan_en: wlan_en {
+
+			compatible = "regulator-fixed";
+
+			regulator-name = "wlan-en-regulator";
+
+			regulator-min-microvolts = <1800000>;
+
+			regulator-max-microvolts = <1800000>;
+
+
+
+			/* WLAN enable: GPIO3_24 */
+
+			gpio = <&gpio3 24 GPIO_ACTIVE_HIGH>;
+
+			startup-delay-us = <70000>;
+
+			enable-active-high;
+
+		};
+
+	};
+
+
+
+
+
+	kim {
+
+		compatible = "kim";
+
+		nshutdown_gpio = <87>;	/* BT enable: GPIO3_23 */
+
+		dev_name = "/dev/ttymxc1";
+
+		flow_cntrl = <1>;
+
+		baud_rate = <3000000>;
+
+	};
+
+
+
+	btwilink {
+
+		compatible = "btwilink";
+
+	};
+
+};
+
+
+
+&backlight {
+
+	// Backlight is configured on PWM1, not PWM3
+
+	pwms = <&pwm1 0 100000>;
+
+	brightness-levels = <0 4 8 16 32 64 128 255>;
+
+	default-brightness-level = <7>;
+
+	status = "okay";
+
+};
+
+
+
+/* Colibri SPI */
+
+&ecspi4 {
+
+	status = "okay";
+
+
+
+	spidev0: spidev@1 {
+
+		compatible = "spidev";
+
+		reg = <0>;
+
+		spi-max-frequency = <50000000>;
+
+
+
+		// SPI (J8) Header also exposes a pin as an interrupt
+
+		pinctrl-names = "default";
+
+		pinctrl-0 = <&pinctrl_spi_int>;
+
+		// FIXME: bind interrupt (driver specific?)
+
+		//interrupt-parent = <&gpio3>;
+
+		//interrupts = <27 IRQ_TYPE_LEVEL_LOW>;
+
+	};
+
+};
+
+
+
+&hdmi_audio {
+
+	status = "okay";
+
+};
+
+
+
+&hdmi_cec {
+
+	status = "okay";
+
+	pinctrl-names = "default";
+
+	pinctrl-0 = <&pinctrl_hdmi_cec>;
+
+};
+
+
+
+&hdmi_core {
+
+	status = "okay";
+
+};
+
+
+
+&hdmi_video {
+
+	status = "okay";
+
+};
+
+
+
+/*
+
+ * I2C: I2C3_SDA/SCL on SODIMM 194/196 (e.g. RTC on carrier
+
+ * board)
+
+ */
+
+&i2c3 {
+
+	status = "okay";
+
+	/* DS1340 real time clock on carrier board */
+
+	rtc_i2c: rtc@68 {
+
+		compatible = "dallas,ds1340";
+
+		reg = <0x68>;
+
+	};
+
+	/* Also broken out on J11 header */
+
+};
+
+
+
+&i2c4 {
+
+	/* Broken out on J5 header */
+
+	status = "okay";
+
+	pinctrl-name = "default";
+
+	pinctrl-0 = <&pinctrl_i2c_4>;
+
+};
+
+
+
+/*
+
+ * DDC_I2C: I2C2_SDA/SCL on extension connector pin 15/16
+
+ */
+
+&i2cddc {
+
+	status = "okay";
+
+
+
+	hdmi: edid@50 {
+
+		compatible = "fsl,imx6-hdmi-i2c";
+
+		reg = <0x50>;
+
+	};
+
+};
+
+
+
+&iomuxc {
+
+	/*
+
+	 * Mux all pins which are unused to be GPIOs
+
+	 * so they are ready for export to user space
+
+	 */
+
+	pinctrl-names = "default";
+
+	pinctrl-0 = <&pinctrl_header_j5 &pinctrl_pwm_d_cif_d6 &pinctrl_pwm_a_cif_d7
+
+	             &pinctrl_usbh_oc_1 &pinctrl_misc>;
+
+
+
+	gumstix {
+
+		pinctrl_hdmi_cec: hdmicecgrp {
+
+			fsl,pins = <
+
+				MX6QDL_PAD_KEY_ROW2__HDMI_TX_CEC_LINE 0x1f8b0
+
+			>;
+
+		};
+
+		pinctrl_header_j5: header_j5 {
+
+			fsl,pins = <
+
+				MX6QDL_PAD_GPIO_1__GPIO1_IO01		PAD_CTRL_HYS_PD	/* also need pinctrl_pwm_d_cif_d6 */
+
+				MX6QDL_PAD_SD4_DAT1__GPIO2_IO09		PAD_CTRL_HYS_PD	/* also need pinctrl_pwm_a_cif_d7 */ 
+
+				MX6QDL_PAD_SD4_DAT2__GPIO2_IO10		PAD_CTRL_HYS_PD
+
+				MX6QDL_PAD_NANDF_D7__GPIO2_IO07		PAD_CTRL_HYS_PD
+
+				MX6QDL_PAD_SD4_DAT0__GPIO2_IO08		PAD_CTRL_HYS_PD
+
+				MX6QDL_PAD_SD4_DAT3__GPIO2_IO11		PAD_CTRL_HYS_PD
+
+				MX6QDL_PAD_EIM_D17__GPIO3_IO17		PAD_CTRL_HYS_PD
+
+				MX6QDL_PAD_EIM_D18__GPIO3_IO18		PAD_CTRL_HYS_PD
+
+				MX6QDL_PAD_EIM_A19__GPIO2_IO19		PAD_CTRL_HYS_PD
+
+				MX6QDL_PAD_EIM_A18__GPIO2_IO20		PAD_CTRL_HYS_PD
+
+			>;
+
+		};
+
+		pinctrl_i2c_4: i2c_4 {
+
+			fsl,pins = <
+
+				MX6QDL_PAD_GPIO_7__I2C4_SCL	0x4001b8b1
+
+				MX6QDL_PAD_GPIO_8__I2C4_SDA	0x4001b8b1
+
+			>;
+
+		};
+
+		pinctrl_lcd_enable: lcd_enable {
+
+			fsl,pins = <
+
+				MX6QDL_PAD_EIM_D26__GPIO3_IO26	PAD_CTRL_HYS_PU
+
+			>;
+
+		};
+
+		pinctrl_lcd_upper: lcd_upper {
+
+			fsl,pins = <
+
+				MX6QDL_PAD_DISP0_DAT18__IPU1_DISP0_DATA18  0xa1
+
+				MX6QDL_PAD_DISP0_DAT19__IPU1_DISP0_DATA19  0xa1
+
+				MX6QDL_PAD_DISP0_DAT20__IPU1_DISP0_DATA20  0xa1
+
+				MX6QDL_PAD_DISP0_DAT21__IPU1_DISP0_DATA21  0xa1
+
+				MX6QDL_PAD_DISP0_DAT22__IPU1_DISP0_DATA22  0xa1
+
+				MX6QDL_PAD_DISP0_DAT23__IPU1_DISP0_DATA23  0xa1
+
+			>;
+
+		};
+
+		pinctrl_leds: led_pins {
+
+			fsl,pins = <
+
+				MX6QDL_PAD_NANDF_D2__GPIO2_IO02	PAD_CTRL_HYS_PU
+
+				MX6QDL_PAD_NANDF_D3__GPIO2_IO03	PAD_CTRL_HYS_PU
+
+			>;
+
+		};
+
+		pinctrl_misc: misc_pins {
+
+			fsl,pins = <
+
+				MX6QDL_PAD_EIM_D29__GPIO3_IO29   PAD_CTRL_HYS_PD
+
+			>;
+
+		};
+
+		pinctrl_spi_int: spi_int {
+
+			fsl,pins = <
+
+				MX6QDL_PAD_EIM_D27__GPIO3_IO27	PAD_CTRL_HYS_PU
+
+			>;
+
+		};
+
+		pinctrl_usdhc2: usdhc2grp {
+
+			fsl,pins = <
+
+				MX6QDL_PAD_SD2_CMD__SD2_CMD	0x17069
+
+				MX6QDL_PAD_SD2_CLK__SD2_CLK	0x10069
+
+				MX6QDL_PAD_SD2_DAT0__SD2_DATA0	0x17069
+
+				MX6QDL_PAD_SD2_DAT1__SD2_DATA1	0x17069
+
+				MX6QDL_PAD_SD2_DAT2__SD2_DATA2	0x17069
+
+				MX6QDL_PAD_SD2_DAT3__SD2_DATA3	0x17069
+
+			>;
+
+		};
+
+		pinctrl_wilink_ctrl: wilink_ctrl {
+
+			fsl,pins = <
+
+				MX6QDL_PAD_EIM_D23__GPIO3_IO23	0x13059	/* BT enable */
+
+				MX6QDL_PAD_EIM_D24__GPIO3_IO24	0x13059	/* WLAN enable */
+
+				MX6QDL_PAD_EIM_D25__GPIO3_IO25	0x13059	/* WLAN IRQ */
+
+			>;
+
+		};
+
+	};
+
+
+
+	imx6dl-colibri {
+
+		/* Overwrite to switch default wakeup pin */
+
+		pinctrl_gpio_keys: gpio_keys {
+
+			fsl,pins = <
+
+				MX6QDL_PAD_NANDF_D4__GPIO2_IO04		PAD_CTRL_HYS_PU	/* S2 -- Power Button */
+
+			>;
+
+		};
+
+	};
+
+
+
+	uart1 {
+
+		/* Overwrite---we don't use the CTS/RTS signals */
+
+		pinctrl_uart1_dte: uart1-dtegrp { /* DTE mode */
+
+			fsl,pins = <
+
+				MX6QDL_PAD_CSI0_DAT10__UART1_RX_DATA 0x1b0b1
+
+				MX6QDL_PAD_CSI0_DAT11__UART1_TX_DATA 0x1b0b1
+
+			>;
+
+		};
+
+	};
+
+};
+
+
+
+&lcd {
+
+	status = "okay";
+
+	default_ifmt = "RGB24";
+
+	// supplement existing pinctrl with upper 6-bits
+
+	pinctrl-0 = <&pinctrl_ipu1_lcd &pinctrl_lcd_upper &pinctrl_lcd_enable>;
+
+};
+
+
+
+&mxcfb1 {
+
+	status = "okay";
+
+	interface_pix_fmt = "RGB24";
+
+	mode_str ="480x272M@60";
+
+	default_bpp = <24>;
+
+};
+
+
+
+&mxcfb2 {
+
+	status = "okay";
+
+};
+
+
+
+&pwm1 {
+
+	status = "okay";
+
+};
+
+
+
+&sound_hdmi {
+
+	status = "okay";
+
+};
+
+
+
+&uart1 {
+
+	/* System console */
+
+	status = "okay";
+
+        pinctrl-0 = <&pinctrl_uart1_dte>;
+
+
+
+	// FIXME: disable fsl,uart-has-rtscts;
+
+	// -->can't readily override without redefining (whole aips-bus!)
+
+};
+
+
+
+&uart2 {
+
+	status = "okay";
+
+};
+
+
+
+&uart3 {
+
+	/* broken out on J5 header */
+
+	status = "okay";
+
+};
+
+
+
+&usbh1 {
+
+	status = "okay";
+
+};
+
+
+
+&usbotg {
+
+	status = "okay";
+
+	extcon = <&extcon_usbc_det>;
+
+};
+
+
+
+&usdhc1 {
+
+	status = "okay";
+
+};
+
+
+
+&usdhc2 {
+
+	label = "SDIO";
+
+	pinctrl-names = "default";
+
+	pinctrl-0 = <&pinctrl_usdhc2 &pinctrl_wilink_ctrl>;
+
+	vmmc-supply = <&reg_wlan_en>;
+
+	keep-power-in-suspend;
+
+	non-removable;
+
+	cap-power-off-card;
+
+	bus-width = <4>;
+
+	no-1-8-v; // We're level-shifting so...
+
+	status = "okay";
+
+
+
+	#address-cells = <1>;
+
+	#size-cells = <0>;
+
+	wlcore: wlcore@2 {
+
+		compatible = "ti,wl1835";
+
+		reg = <2>;
+
+		interrupt-parent = <&gpio3>;
+
+		interrupts = <25 IRQ_TYPE_EDGE_RISING>;
+
+	};
+
+};
