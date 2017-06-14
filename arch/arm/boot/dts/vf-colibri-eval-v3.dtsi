@@ -9,7 +9,7 @@
 
 / {
 	chosen {
-		stdout-path = "serial0:115200n8";
+		bootargs = "console=ttyLP0,115200";
 	};
 
 	clk16m: clk16m {
@@ -87,7 +87,7 @@
 
 	/* M41T0M6 real time clock on carrier board */
 	rtc: m41t0m6@68 {
-		compatible = "st,m41t00";
+		compatible = "st,m41t0";
 		reg = <0x68>;
 	};
 };

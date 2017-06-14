@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Toradex AG
+ * Copyright 2016 Toradex AG
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -8,10 +8,11 @@
  */
 
 /dts-v1/;
-#include "vf500-colibri.dtsi"
-#include "vf-colibri-eval-v3.dtsi"
+#include "imx7s-colibri.dtsi"
+#include "imx7-colibri-eval-v3.dtsi"
 
 / {
-	model = "Toradex Colibri VF50 on Colibri Evaluation Board";
-	compatible = "toradex,vf500-colibri_vf50-on-eval", "toradex,vf500-colibri_vf50", "fsl,vf500";
+	model = "Toradex Colibri iMX7S on Colibri Evaluation Board V3";
+	compatible = "toradex,colibri_imx7s-eval", "toradex,colibri_imx7s", \
+		     "fsl,imx7s", "fsl,imx7d";
 };
