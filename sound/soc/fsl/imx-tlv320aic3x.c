@@ -17,7 +17,7 @@
 #include "imx-audmux.h"
 #include "imx-ssi.h"
 
-#define CODEC_CLOCK 19200000
+#define CODEC_CLOCK 12000000
 
 
 /* machine dapm widgets */
